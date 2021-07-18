@@ -1,26 +1,26 @@
 # $Id$
 # Maintainer: Chupligin Sergey (NeoChapay) <neochapay@gmail.com>
 
-_host="git.sailfishos.org"
-_project=mer-core
+_host="github.com"
+_project=nemomobile-ux
 _basename=voicecall
 _branch=master
 
 pkgname=$_basename-git
 
-pkgver=0.7.11.r0.ga188e61
+pkgver=0.7.11.r6.g116712f
 
-pkgrel=5
+pkgrel=1
 pkgdesc="Dialer engine for Nemo Mobile"
 arch=('x86_64' 'aarch64')
 url="https://$_host/$_project/$_basename#branch=$_branch"
 license=('LGPL-2.1-only AND Apache-2.0')
-depends=('mapplauncherd-qt' 'libpulse' 'nemo-qml-plugin-devicelock-git' 'qt5-resource-git' 'libqofono-qt5' 'qt5-multimedia' 'qt5-ngfd-git' 'telepathy-qt')
+depends=('libpulse' 'nemo-qml-plugin-devicelock-git' 'qt5-resource-git' 'libqofono-qt5' 'qt5-multimedia' 'qt5-ngfd-git' 'telepathy-qt')
 makedepends=('git' 'cmake')
 provides=("${pkgname%-git}")
 conflicts=("${pkgname%-git}")
-source=("${pkgname}::git+${url}" "0001-fix_build_on_new_qt.patch" '0002-Empty-implementation-of-some-functions.patch' '0003-migrate-to-cmake.patch')
-md5sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
+source=("${pkgname}::git+${url}" 'voicecall-manager.service')
+md5sums=('SKIP' 'SKIP')
 
 pkgver() {
   cd "${srcdir}/${pkgname}"
@@ -32,9 +32,6 @@ pkgver() {
 
 prepare() {
   cd "${srcdir}/${pkgname}"
-  patch -p1 --input "${srcdir}/0001-fix_build_on_new_qt.patch"
-  patch -p1 --input "${srcdir}/0002-Empty-implementation-of-some-functions.patch"
-  patch -p1 --input "${srcdir}/0003-migrate-to-cmake.patch"
 }
 
 build() {
@@ -47,8 +44,8 @@ build() {
 
 package() {
     make -C "${srcdir}/${pkgname}/build" DESTDIR="$pkgdir" install
-
-  sed -i 's/WantedBy=user-session.target/WantedBy=graphical-session.target/;s/pre-user-session.target/graphical-session-pre.target/' "${pkgdir}/usr/lib/systemd/user/voicecall-manager.service"
-  mkdir -p ${pkgdir}/usr/lib/systemd/user/graphical-session.target.wants
-  ln -s ../voicecall-manager.service ${pkgdir}/usr/lib/systemd/user/graphical-session.target.wants/
+    rm "${pkgdir}/usr/lib/systemd/user/voicecall-manager.service"
+    cp ${srcdir}/voicecall-manager.service "${pkgdir}/usr/lib/systemd/user/voicecall-manager.service"
+    mkdir -p ${pkgdir}/usr/lib/systemd/user/graphical-session.target.wants
+    ln -s ../voicecall-manager.service ${pkgdir}/usr/lib/systemd/user/graphical-session.target.wants/
 }
